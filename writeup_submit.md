@@ -20,6 +20,9 @@ The goals / steps of this project are the following:
 [HSVSelected]: ./report_images/HSV_select.png "HSV selected images"
 [HSLSelected]: ./report_images/HLS_select.png "HSL selected images"
 [ROISelected]: ./report_images/ROI_select.png "ROI selected images"
+[EdgeMasked]: ./report_images/Canny_masked.png "Canny edge masked images"
+[WeightedMasked]: ./report_images/hough_line_masked.png "Hough line detected images"
+
 
 ---
 
@@ -31,9 +34,9 @@ My pipeline consists of the following steps.
 - [Color Selection](#color-selection)
 - [Region of Interest Selection](#region-of-interest-selection)
 - [Gray Scaling](#gray-scaling)
-- Gaussian Smoothing
-- Canny Edge Detection
-- Hough Tranform Line Detection
+- [Gaussian Smoothing](#gaussian-smoothing)
+- [Canny Edge Detection](#canny-edge-detection)
+- [Hough Tranform Line Detection](#hough-transform-line-detection)
 
 In my experiments, the key to obtaining clean images for lane detection are Color Selection and Region of Interest Selection. The Gray Scaling and Gaussian Smoothing contribute minimally to cleaner images for Edge detection and line detecion. 
 
@@ -83,6 +86,18 @@ The HSV selected images after the ROI Selection are shown below:
 ![ROI selected images][ROISelected]
 
 #### Gray Scaling ####
+
+#### Gaussian Smoothing ####
+
+#### Canny Edge Detection ####
+The images after the Canny edge detection algorithm is applied are shown below:
+##### Canny edge detected outputs #####
+![Canny edged masked images][EdgeMasked]
+
+#### Hough Tranform Line Detection ####
+The detected Hough lines overlaid on top of the original test images are shown below:
+##### Hough line detected outputs overlaid on the original test images #####
+![Weight masked images][WeightedMasked]
 
 ### 2. Identify potential shortcomings with your current pipeline
 
