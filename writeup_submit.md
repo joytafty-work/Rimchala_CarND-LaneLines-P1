@@ -23,14 +23,14 @@ The goals / steps of this project are the following:
 
 ---
 
-### Reflection
+### Reflection 
 
 ### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
-#### High-level Summary 
+#### High-level Summary ####
 My pipeline consists of the following steps. 
 - [Color Selection](#color-selection)
-- Region of Interest Selection
-- Gray Scaling
+- [Region of Interest Selection](#region-of-interest-selection)
+- [Gray Scaling](#gray-scaling)
 - Gaussian Smoothing
 - Canny Edge Detection
 - Hough Tranform Line Detection
@@ -55,10 +55,10 @@ def hsl_color_select_white_yellow(image):
     return cv2.cvtColor(color_selected, cv2.COLOR_HLS2RGB)
 ```
 The test images after the HSV Color Segmentation are shown below: 
-##### best HSV color selected outputs
+##### best HSV color selected outputs #####
 ![HSV selected images][HSVSelected]
 
-#### Region of Interest (ROI) Selection
+#### Region of Interest Selection ####
 The intuition behind region of interest selection is from the car dashboard the bottom half of the image patch are road areas where lane lines are painted. The region of interest selection filters in only the region where it is highly likely for lane lines to be so that the rest of the pipeline focuses on detecting lines from this region.
 
 To implement this, I experimented with the all four corners of the ROI and found that work best for the test images. Here's my implementation: 
@@ -79,9 +79,10 @@ roi_selected_images = [
 ]
 ```
 The HSV selected images after the ROI Selection are shown below:
-##### ROI selected outputs
+##### ROI selected outputs #####
 ![ROI selected images][ROISelected]
 
+#### Gray Scaling ####
 
 ### 2. Identify potential shortcomings with your current pipeline
 
