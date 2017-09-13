@@ -25,6 +25,7 @@ The goals / steps of this project are the following:
 [EdgeMasked]: ./report_images/Canny_masked.png "Canny edge masked images"
 [WeightedMasked]: ./report_images/hough_line_masked.png "Hough line detected images"
 [ImprovedDrawLineMasked]: ./report_images/improved_draw_lines_masked.png "Hough line images after improved draw line"
+[SolidWhiteVideo]: /test_videos_output/solidWhiteRight.mp4 "SolidWhiteRight test output videos"
 
 ---
 
@@ -171,6 +172,7 @@ The detected Hough lines overlaid on top of the original test images are shown b
 
 ### Experiments on Test Videos ###
 The implemented pipeline perform relatively well on the two test videos provided after the improvements on the `draw_lines()` function. The results can be viewed here: 
+![Solid White Test Video Output][SolidWhiteVideo]
 
 ### Potential ShortComings ###
 While 
