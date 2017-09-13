@@ -179,19 +179,20 @@ The implemented pipeline perform relatively well on the two test videos provided
 
 ### Potential ShortComings ###
 While the pipeline seems to perform respectably well on the test videos, there are many scenario in which the pipeline could fail.  
-1. Low Luminance Scene : All the provided test images are taken from well illuminated scene for which the color segmentation can yield crisp cleanly segmented lane lines from the rest of the scene. In low lighing condition, color segmentation especially based on hue value (for yellow lane line) will be challenging as different color region in low saturation start to overlap. 
+###### 1. Low Luminance Scene : 
+All the provided test images are taken from well illuminated scene for which the color segmentation can yield crisp cleanly segmented lane lines from the rest of the scene. In low lighing condition, color segmentation especially based on hue value (for yellow lane line) will be challenging as different color region in low saturation start to overlap. 
 
-2. Rapidly changing illumination :  (e.g. driving through tunnels, coming in and out of a garage)
+###### 2. Rapidly changing illumination : (e.g. driving through tunnels, coming in and out of a garage)
 When there's a rapid changing in illumination from scene to scene and the camera aperture and shuttle speed does not adjust accordingly, the resulting images can be under/over illuminated for a brief moments. Color segmentation in those frames can be challenging and could leads to totally failure in lane detection since the pipeline heavily relies on the color segmentation. 
 
-3. Change of ROI when driving up hill/down hill
+###### 3. Change of ROI when driving up hill/down hill
 When a car is driving up hill / down the region of interest will likely move downward/upward respectively. Since the relative position of the ROI are hard-coded in the pipeline, the ROI might be off in those frames.
 
-4. Turning : 
+###### 4. Turning : 
 When a car is turing the lane line angles within those image frames can change toward zero and lane line grouping based on slope sign might not accurately grouping the line segments. The pipeline could output lane lines are completely off. 
 
-5. Occlusion : 
-On a crowd driveway e.g. during a traffic jams, lane lines can be partially or completed occluded by other objects / vehicles on the roads. The pipeline could fail to detect any lane lines in this case. 
+###### 5. Occlusion : 
+On a crowded driveway e.g. during a traffic jams, lane lines can be partially or completed occluded by other objects / vehicles on the roads. The pipeline could fail to detect any lane lines in this case. 
 
 ### Suggestion for Improvements ###
 Use information from the previous frame: Use detected lane lines in previous frames to define region of interest and guide/weigh the line segments in the current frame. Assuming that the lane lines are slowly and steadily changing frame-by-frame, we can compute the distance between the average positions and average slope of the line segments in the current frame to those of the detected line in the previous frame. This distance can be used to weigh the line segments when computing line averaging in the `draw_lines()` function.
