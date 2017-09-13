@@ -17,6 +17,8 @@ The goals / steps of this project are the following:
 
 [image1]: ./examples/grayscale.jpg "Grayscale"
 [RGBSelected]: ./report_images/RGB_select.png "RGB selected images"
+[HSVSelected]: ./report_images/HSV_select.png "HSV selected images"
+[HSLSelected]: ./report_images/HLS_select.png "HSL selected images"
 
 ---
 
@@ -31,18 +33,14 @@ My pipeline consists of the following steps.
 - Canny Edge Detection
 - Hough Tranform Line Detection
 
-I found that the key to obtaining clean images for lane detection are Color Selection and Region of Interest Selection. Images from a self-driving car dashboard camera angle are fairly consistent in their high level composition. The bottom half of the image patch are road areas where lane lines are. For most of the well-paved road, lane lines are painted bright white and yellow against dark gray background (making it obvious for driver to make out the lanes). 
+In my experiments, the key to obtaining clean images for lane detection are Color Selection and Region of Interest Selection. Images from a self-driving car dashboard camera angle are fairly consistent in their high level composition. The bottom half of the image patch are road areas where lane lines are. For most of the well-paved road, lane lines are painted bright white and yellow against dark gray background (making it obvious for driver to make out the lanes). 
 
-To perform color selection, we experimented with setting range filters for white and yellow colors in RGB, HSV, and HLS color models. In the test images, with carefully chosen lower and upper bounds for each color models, image patches with white and yellow color cleanly segmented.
+To perform color selection, we experimented with setting range filters for white and yellow colors in RGB, HSV, and HLS color models. I looked up the RGB, HSV, and HSL colors using this [online color picker tool](http://colorizer.org/) and slightly modified the range to get crisper color segmentation. In the test images, with carefully chosen lower and upper bounds for each color models, image patches with white and yellow color cleanly segmented as shown [below](RGB_select). I found that the 
 http://www.bogotobogo.com/python/OpenCV_Python/python_opencv3_Changing_ColorSpaces_RGB_HSV_HLS.php
 
-First, I converted the images to grayscale, then I .... 
-
-In order to draw a single line on the left and right lanes, I modified the draw_lines() function by ...
-
-If you'd like to include images to show how the pipeline works, here is how to include an image: 
-
-![RGB selected images][RGBSelected]
+![RGB selected images][RGBSelected](#RGB_select)
+![HSV selected images][HSVSelected]
+![HSL selected images][HSLSelected]
 
 ### 2. Identify potential shortcomings with your current pipeline
 
