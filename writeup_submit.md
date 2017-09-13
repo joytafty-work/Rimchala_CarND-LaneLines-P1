@@ -4,6 +4,8 @@
 - [Pipeline Description](#pipeline-description)
 - [Experiments on Test Videos](#experiments-on-test-videos)
 - [Potential ShortComings](#potential-shortcomings)
+- [Suggestion for Improvements](#suggestion-for-improvements)
+
 ---
 
 **Finding Lane Lines on the Road**
@@ -41,6 +43,8 @@ I modify the `draw_lines` function to make the line detection more robust by gro
 
 In my experiments, the key to obtaining clean images for lane detection are Color Selection and Region of Interest Selection. Gaussian Smoothing seem to contributes minimally to cleaner images for Edge detection and line detecion. 
 
+###### back to [Table of Contents](#table-of-contents)
+
 #### Color selection ####
 The intuition behind color selection is that images taken from a self-driving car dashboard are fairly consistent in their high level composition. For most of the well-paved road, lane lines are painted bright white and yellow against dark gray background (making it obvious for driver to make out the lanes). 
 
@@ -62,6 +66,7 @@ def hsv_color_select_white_yellow(image):
 The test images after the HSV Color Segmentation are shown below: 
 ##### best HSV color selected outputs #####
 ![HSV selected images][HSVSelected]
+###### back to [Table of Contents](#table-of-contents)
 
 #### Region of Interest Selection ####
 The intuition behind region of interest selection arises from that the car dashboard the bottom half of the image patch are road areas where lane lines are painted. The region of interest selection filters in only the region where it is highly likely for lane lines to be so that the rest of the pipeline focuses on detecting lines from this region.
@@ -86,6 +91,7 @@ roi_selected_images = [
 The HSV selected images after the ROI Selection are shown below:
 ##### ROI selected outputs #####
 ![ROI selected images][ROISelected]
+###### back to [Table of Contents](#table-of-contents)
 
 #### Gray Scaling ####
 Gray scaling converts the image in color space into a single channel for downstream processing (Gaussian smoothing and edge detection). For this step, I used the provided `gray_scale` function (which is a thin wrapper code around `cv2.cvtColor( _ , cv2.COLOR_RGB2GRAY)`). 
@@ -103,6 +109,7 @@ The input images in this project are 8-bit (0-255 pixel intensity) so (the absol
 The images after the Canny edge detection algorithm is applied are shown below:
 ##### Canny edge detected outputs #####
 ![Canny edged masked images][EdgeMasked]
+###### back to [Table of Contents](#table-of-contents)
 
 #### Hough Tranform Line Detection ####
 The Hough Transform is the key step in successful line detection. I use the provided `hough_lines` which calls `cv2.HoughLinesP` and draw the detect lines over the original image using `draw_line()` There are five parameters that specifies the output of the `cv2.HoughLines`
@@ -117,6 +124,7 @@ Varying these parameters requires a lot of experimentation. I found that the val
 The detected Hough lines overlaid on top of the original test images are shown below:
 ##### Hough line detected outputs overlaid on the original test images #####
 ![Weight masked images][WeightedMasked]
+###### back to [Table of Contents](#table-of-contents)
 
 #### Improvement to the draw_lines function ####
 I exploit two strategies to make the `draw_lines()` function more robust. The intuition behind the improvements are as follow. Given the the preprocessing yield high quality Hough lines that can be grouped into left vs. right lane lines segments, the outputs of the Hough transform can be grouped based on their slopes. With `matplotlib.image` y-axis convention (which is the reverse of `matplotlib.pyplot`), negative slope lines belong to the left lane and positive slope lines to the right lane. After the lane grouping, the lines can be extrapolated by using a linear equation with average slope and average position of the line segments within group. 
@@ -159,6 +167,7 @@ def draw_lines_improved(img, lines,
 The detected Hough lines overlaid on top of the original test images are shown below:
 ##### Hough line detected after the modification to the `draw_lines()` function #####
 ![Improved Draw Lines images][ImprovedDrawLineMasked]
+###### back to [Table of Contents](#table-of-contents)
 
 ### Experiments on Test Videos ###
 The implemented pipeline perform relatively well on the two test videos provided after the improvements on the `draw_lines()` function. The results can be viewed here: 
@@ -174,8 +183,11 @@ While
 4. Lane line grouping will fail when the car is turning
 
 
-### 3. Suggest possible improvements to your pipeline
+### Suggestion for Improvements ###
 1. Use previous frames to guess where the next lane line might be
 A possible improvement would be to ...
 
 Another potential improvement could be to ...
+
+###### back to [Table of Contents](#table-of-contents)
+
