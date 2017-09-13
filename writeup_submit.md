@@ -22,21 +22,24 @@ The goals / steps of this project are the following:
 [ROISelected]: ./report_images/ROI_select.png "ROI selected images"
 [EdgeMasked]: ./report_images/Canny_masked.png "Canny edge masked images"
 [WeightedMasked]: ./report_images/hough_line_masked.png "Hough line detected images"
-
+[ImprovedDrawLineMasked]: ./report_images/improved_draw_line_masked.png "Hough line images after improved draw line"
 
 ---
 
 ### Reflection 
 
-### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
+### Pipeline descriptoin
 #### High-level Summary ####
-My pipeline consists of the following steps. 
+My pipeline consists of the following steps:
 - [Color Selection](#color-selection)
 - [Region of Interest Selection](#region-of-interest-selection)
 - [Gray Scaling](#gray-scaling)
 - [Gaussian Smoothing](#gaussian-smoothing)
 - [Canny Edge Detection](#canny-edge-detection)
 - [Hough Tranform Line Detection](#hough-transform-line-detection)
+
+I improve the `draw_lines` function to make the line detection more robust by grouping the lines into left and right lane lines and the line extrapolation. Here is more detailed description: 
+- [Improvement to the draw_lines() function](#improvement-to-the-draw_lines()-function)
 
 In my experiments, the key to obtaining clean images for lane detection are Color Selection and Region of Interest Selection. Gaussian Smoothing seem to contributes minimally to cleaner images for Edge detection and line detecion. 
 
@@ -117,7 +120,10 @@ The detected Hough lines overlaid on top of the original test images are shown b
 ##### Hough line detected outputs overlaid on the original test images #####
 ![Weight masked images][WeightedMasked]
 
-### 2. Identify potential shortcomings with your current pipeline
+#### Improvement to the draw_lines() function ####
+To improve the `draw_lines()` function
+
+### 2. Potential ShortComings
 
 #### Color selection
 1. Lighting : All the provided test images are taken from well illuminated scene for which the color segmentation can yield crisp cleanly segmented lane lines from the rest of the scene. In low lighing condition, color segmentation especially based on hue value (for yellow lane line) will be challenging as different color region in low saturation start to overlap. 
