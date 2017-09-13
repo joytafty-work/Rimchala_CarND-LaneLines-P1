@@ -25,7 +25,10 @@ The goals / steps of this project are the following:
 [EdgeMasked]: ./report_images/Canny_masked.png "Canny edge masked images"
 [WeightedMasked]: ./report_images/hough_line_masked.png "Hough line detected images"
 [ImprovedDrawLineMasked]: ./report_images/improved_draw_lines_masked.png "Hough line images after improved draw line"
+
+[//]: # (Video References)
 [SolidWhiteVideo]: /test_videos_output/solidWhiteRight.mp4 "SolidWhiteRight test output videos"
+[SolidYellowVideo]: /test_videos_output/solidYellowLeft.mp4 "solidYellowLeft test output videos"
 
 ---
 
@@ -172,24 +175,26 @@ The detected Hough lines overlaid on top of the original test images are shown b
 
 ### Experiments on Test Videos ###
 The implemented pipeline perform relatively well on the two test videos provided after the improvements on the `draw_lines()` function. The results can be viewed here: 
-![Solid White Test Video Output][SolidWhiteVideo]
+![Solid White Test Video Output][SolidWhiteVideo] and ![Solid Yellow Test Video Output][SolidYellowVideo]
 
 ### Potential ShortComings ###
-While 
-1. Lighting : All the provided test images are taken from well illuminated scene for which the color segmentation can yield crisp cleanly segmented lane lines from the rest of the scene. In low lighing condition, color segmentation especially based on hue value (for yellow lane line) will be challenging as different color region in low saturation start to overlap. 
+While the pipeline seems to perform respectably well on the test videos, there are many scenario in which the pipeline could fail.  
+1. Low Luminance Scene : All the provided test images are taken from well illuminated scene for which the color segmentation can yield crisp cleanly segmented lane lines from the rest of the scene. In low lighing condition, color segmentation especially based on hue value (for yellow lane line) will be challenging as different color region in low saturation start to overlap. 
 
-2. Lane line coded in different color
+2. Rapidly changing illumination :  (e.g. driving through tunnels, coming in and out of a garage)
+When there's a rapid changing in illumination from scene to scene and the camera aperture and shuttle speed does not adjust accordingly, the resulting images can be under/over illuminated for a brief moments. Color segmentation in those frames can be challenging and could leads to totally failure in lane detection since the pipeline heavily relies on the color segmentation. 
 
-3. Rapidly changing illumination (e.g. driving through tunnels)
+3. Change of ROI when driving up hill/down hill
+When a car is driving up hill / down the region of interest will likely move downward/upward respectively. Since the relative position of the ROI are hard-coded in the pipeline, the ROI might be off in those frames.
 
-4. Lane line grouping will fail when the car is turning
+4. Turning : 
+When a car is turing the lane line angles within those image frames can change toward zero and lane line grouping based on slope sign might not accurately grouping the line segments. The pipeline could output lane lines are completely off. 
 
+5. Occlusion : 
+On a crowd driveway e.g. during a traffic jams, lane lines can be partially or completed occluded by other objects / vehicles on the roads. The pipeline could fail to detect any lane lines in this case. 
 
 ### Suggestion for Improvements ###
-1. Use previous frames to guess where the next lane line might be
-A possible improvement would be to ...
-
-Another potential improvement could be to ...
+Use information from the previous frame: Use detected lane lines in previous frames to define region of interest and guide/weigh the line segments in the current frame. Assuming that the lane lines are slowly and steadily changing frame-by-frame, we can compute the distance between the average positions and average slope of the line segments in the current frame to those of the detected line in the previous frame. This distance can be used to weigh the line segments when computing line averaging in the `draw_lines()` function.
 
 ###### back to [Table of Contents](#table-of-contents)
 
