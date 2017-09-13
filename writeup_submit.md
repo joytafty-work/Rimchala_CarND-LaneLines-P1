@@ -28,7 +28,7 @@ The goals / steps of this project are the following:
 ### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
 #### High-level Summary 
 My pipeline consists of the following steps. 
-- Color Selection
+- [Color Selection](#color-selection)
 - Region of Interest Selection
 - Gray Scaling
 - Gaussian Smoothing
@@ -37,7 +37,7 @@ My pipeline consists of the following steps.
 
 In my experiments, the key to obtaining clean images for lane detection are Color Selection and Region of Interest Selection. The Gray Scaling and Gaussian Smoothing contribute minimally to cleaner images for Edge detection and line detecion. 
 
-#### Color selection
+#### Color selection ####
 The intuition behind color selection is that images taken from a self-driving car dashboard are fairly consistent in their high level composition. For most of the well-paved road, lane lines are painted bright white and yellow against dark gray background (making it obvious for driver to make out the lanes). 
 
 To perform color selection, I experimented with setting range filters for white and yellow colors in RGB, HSV, and HLS color models. I looked up the RGB, HSV, and HSL colors using this [online color picker tool](http://colorizer.org/) and slightly modified the range to get crisper color segmentation. In the test images, with carefully chosen lower and upper bounds for each color models, image patches with white and yellow color cleanly segmented as shown with the HSV and HSL selected test images slightly more cleanly segmented than the RGB selected ones. To choose between HSV and HLS, I have found this [paper](http://revistas.ua.pt/index.php/revdeti/article/viewFile/2092/1964) which compares between HSV, HSL and other color models in real-time objection recognition and found HSV to be the best. So I choose to use HSV selection in my pipeline. Here's my implementation of Color Section. 
