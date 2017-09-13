@@ -1,9 +1,9 @@
 # **Finding Lane Lines on the Road** 
 
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file. But feel free to use some other method and submit a pdf if you prefer.
-
+## Table of Contents ##
+- [Pipeline Description](#pipeline-description)
+- [Experiments on Test Videos](#experiments-on-test-videos)
+- [Potential ShortComings](#potential-shortcomings)
 ---
 
 **Finding Lane Lines on the Road**
@@ -26,9 +26,7 @@ The goals / steps of this project are the following:
 
 ---
 
-### Reflection 
-
-### Pipeline descriptoin
+### Pipeline description ###
 #### High-level Summary ####
 My pipeline consists of the following steps:
 - [Color Selection](#color-selection)
@@ -162,9 +160,11 @@ The detected Hough lines overlaid on top of the original test images are shown b
 ##### Hough line detected after the modification to the `draw_lines()` function #####
 ![Improved Draw Lines images][ImprovedDrawLineMasked]
 
-### 2. Potential ShortComings
+### Experiments on Test Videos ###
+The implemented pipeline perform relatively well on the two test videos provided after the improvements on the `draw_lines()` function. The results can be viewed here: 
 
-#### Color selection
+### Potential ShortComings ###
+While 
 1. Lighting : All the provided test images are taken from well illuminated scene for which the color segmentation can yield crisp cleanly segmented lane lines from the rest of the scene. In low lighing condition, color segmentation especially based on hue value (for yellow lane line) will be challenging as different color region in low saturation start to overlap. 
 
 2. Lane line coded in different color
