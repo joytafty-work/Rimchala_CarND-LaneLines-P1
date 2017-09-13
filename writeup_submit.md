@@ -49,17 +49,17 @@ The intuition behind color selection is that images taken from a self-driving ca
 To perform color selection, I experimented with setting range filters for white and yellow colors in RGB, HSV, and HLS color models. I looked up the RGB, HSV, and HSL colors using this [online color picker tool](http://colorizer.org/) and slightly modified the range to get crisper color segmentation. In the test images, with carefully chosen lower and upper bounds for each color models, image patches with white and yellow color cleanly segmented as shown with the HSV and HSL selected test images slightly more cleanly segmented than the RGB selected ones. To choose between HSV and HLS, I have found this [paper](http://revistas.ua.pt/index.php/revdeti/article/viewFile/2092/1964) which compares between HSV, HSL and other color models in real-time objection recognition and found HSV to be the best. So I choose to use HSV selection in my pipeline. Here's my implementation of Color Section. 
 
 ```python
-def hsl_color_select_white_yellow(image):
-    # HLS convention : [Hue, Lightness, Saturation]
-    # White: Any hue, max lightness, any saturation, 
+def hsv_color_select_white_yellow(image):
+    # HSV convention : [Hue, Saturation, Value]
+    # White: any hue, high saturation, any value
     # Bright Yellow: Yellow hue (30 - 90)
     #   - the yellow in the test images some time tints toward orange I change the lower bound to 10
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
-    white_mask = cv2.inRange(image, np.array([0, 220, 0]), np.array([255, 255, 255]))
-    yellow_mask = cv2.inRange(image, np.array([10, 0, 150]), np.array([90, 240, 240]))
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    white_mask = cv2.inRange(image, np.array([0, 0, 225]), np.array([255, 255, 255]))
+    yellow_mask = cv2.inRange(image, np.array([10, 100, 100]), np.array([90, 255, 255]))
     color_mask = cv2.bitwise_or(white_mask, yellow_mask)
     color_selected = cv2.bitwise_and(image, image, mask = color_mask)
-    return cv2.cvtColor(color_selected, cv2.COLOR_HLS2RGB)
+    return cv2.cvtColor(color_selected, cv2.COLOR_HSV2RGB)    
 ```
 The test images after the HSV Color Segmentation are shown below: 
 ##### best HSV color selected outputs #####
@@ -68,7 +68,7 @@ The test images after the HSV Color Segmentation are shown below:
 #### Region of Interest Selection ####
 The intuition behind region of interest selection arises from that the car dashboard the bottom half of the image patch are road areas where lane lines are painted. The region of interest selection filters in only the region where it is highly likely for lane lines to be so that the rest of the pipeline focuses on detecting lines from this region.
 
-To implement this, I experimented with the all four corners of the ROI and found that work best for the test images. Here's my implementation: 
+To implement this, I experimented with the all four corners of the ROI and found that the values that work best for the test images. Here's my implementation: 
 
 ```python
 def compute_roi_vertices(image):    
@@ -121,7 +121,43 @@ The detected Hough lines overlaid on top of the original test images are shown b
 ![Weight masked images][WeightedMasked]
 
 #### Improvement to the draw_lines function ####
-To improve the `draw_lines()` function
+I exploit two strategies to make the `draw_lines()` function more robust. The intuition behind the improvements are as follow. Given the the preprocessing yield high quality Hough lines that can be grouped into left vs. right lane lines segments, the outputs of the Hough transform can be grouped based on their slopes. With `matplotlib.image` y-axis convention (which is the reverse of `matplotlib.pyplot`), negative slope lines belong to the left lane and positive slope lines to the right lane. After the lane grouping, the lines can be extrapolated by using a linear equation with average slope and average position of the line segments within group. 
+
+The implementation of these strategies is shown here: 
+```python 
+def draw_lines_improved(img, lines, 
+                        color=[255, 0, 0], # default to red line
+                        thickness=3
+                       ):
+    """
+    Improve draw_lines by 
+    * Lane grouping: separating line segments as part of the left line vs. the right line.  
+    * Extrapolation: averaging the position of each of the lines and extrapolate to the top and bottom of the lane.    
+    """
+    # Create a pandas data frame of line for easy aggregation
+    # lines are defined as a list of starting point and end point coordinates : x1, y1, x2, y2
+    lines_df = pd.DataFrame(list(chain(*lines)), columns = ['x1', 'y1', 'x2', 'y2'])
+    # Compute line segment slope and determine if line belongs to the left or right lanes
+    lines_df['slope'] = lines_df.apply(lambda row: (row['y2'] - row['y1'])/(row['x2'] - row['x1']), axis=1)
+    # Negative slope segments belong to the left lane group (image y increasing from top to bottom)
+    lines_df['lane'] = lines_df['slope'].apply(lambda x: 'left' if x < 0 else 'right')
+    
+    image_height, image_width, _ = image.shape
+    # Heuristics for top and bottom pixels
+    y1_output = int(0.575*image_height)
+    y2_output = int(0.975*image_height)
+    
+    # group by lane type: 'left' vs. 'right'
+    # groupby object are tuples of (group_name, rows)
+    for gr in lines_df.groupby('lane'):
+        avg_x1 = gr[1]['x1'].agg(np.nanmean).values[0]
+        avg_y1 = gr[1]['y1'].agg(np.nanmean).values[0]
+        avg_slope = gr[1]['slope'].agg(np.nanmean).values[0]
+        if avg_slope != 0:
+            x1 = int(avg_x1 + (y1_output - avg_y1)/avg_slope)
+            x2 = int(avg_x1 + (y2_output - avg_y1)/avg_slope)
+            cv2.line(img, (x1, y1_output), (x2, y2_output), color, thickness)
+```
 The detected Hough lines overlaid on top of the original test images are shown below:
 ##### Hough line detected after the modification to the `draw_lines()` function #####
 ![Improved Draw Lines images][ImprovedDrawLineMasked]
@@ -135,7 +171,7 @@ The detected Hough lines overlaid on top of the original test images are shown b
 
 3. Rapidly changing illumination (e.g. driving through tunnels)
 
-4. Differently colored lane line or lack of lane lines
+4. Lane line grouping will fail when the car is turning
 
 
 ### 3. Suggest possible improvements to your pipeline
