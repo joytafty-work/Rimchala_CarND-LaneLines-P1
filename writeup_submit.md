@@ -194,6 +194,8 @@ When a car is turing the lane line angles within those image frames can change t
 ###### 5. Occlusion : 
 On a crowded driveway e.g. during a traffic jams, lane lines can be partially or completed occluded by other objects / vehicles on the roads. The pipeline could fail to detect any lane lines in this case. 
 
+###### back to [Table of Contents](#table-of-contents)
+
 ### Suggestion for Improvements ###
 Use information from the previous frame: Use detected lane lines in previous frames to define region of interest and guide/weigh the line segments in the current frame. Assuming that the lane lines are slowly and steadily changing frame-by-frame, we can compute the distance between the average positions and average slope of the line segments in the current frame to those of the detected line in the previous frame. This distance can be used to weigh the line segments when computing line averaging in the `draw_lines()` function.
 
