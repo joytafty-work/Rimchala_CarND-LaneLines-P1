@@ -22,8 +22,19 @@ The goals / steps of this project are the following:
 ### Reflection
 
 ### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
+My pipeline consists of the following steps. 
+- Color Selection
+- Region of Interest Selection
+- Gray Scaling
+- Gaussian Smoothing
+- Canny Edge Detection
+- Hough Tranform Line Detection
 
-My pipeline consisted of 5 steps. First, I converted the images to grayscale, then I .... 
+I found that the key to obtaining clean images for lane detection are Color Selection and Region of Interest Selection. Images from a self-driving car dashboard camera angle are fairly consistent in their high level composition. The bottom half of the image patch are road areas where lane lines are. For most of the well-paved road, lane lines are painted bright white and yellow against dark gray background (making it obvious for driver to make out the lanes). 
+
+To perform color selection, we experimented with setting range filters for white and yellow colors in RGB, HSV, and HLS color models. 
+
+First, I converted the images to grayscale, then I .... 
 
 In order to draw a single line on the left and right lanes, I modified the draw_lines() function by ...
 
