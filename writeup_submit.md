@@ -25,6 +25,7 @@ The goals / steps of this project are the following:
 ### Reflection
 
 ### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
+#### High-level Summary 
 My pipeline consists of the following steps. 
 - Color Selection
 - Region of Interest Selection
@@ -33,25 +34,48 @@ My pipeline consists of the following steps.
 - Canny Edge Detection
 - Hough Tranform Line Detection
 
-In my experiments, the key to obtaining clean images for lane detection are Color Selection and Region of Interest Selection. Images from a self-driving car dashboard camera angle are fairly consistent in their high level composition. The bottom half of the image patch are road areas where lane lines are. For most of the well-paved road, lane lines are painted bright white and yellow against dark gray background (making it obvious for driver to make out the lanes). 
+In my experiments, the key to obtaining clean images for lane detection are Color Selection and Region of Interest Selection. The Gray Scaling and Gaussian Smoothing contribute minimally to cleaner images for Edge detection and line detecion. 
 
-To perform color selection, we experimented with setting range filters for white and yellow colors in RGB, HSV, and HLS color models. I looked up the RGB, HSV, and HSL colors using this [online color picker tool](http://colorizer.org/) and slightly modified the range to get crisper color segmentation. In the test images, with carefully chosen lower and upper bounds for each color models, image patches with white and yellow color cleanly segmented as shown [below](RGB_select). I found that the 
-http://www.bogotobogo.com/python/OpenCV_Python/python_opencv3_Changing_ColorSpaces_RGB_HSV_HLS.php
+#### Color selection
+The intuition behind color selection is that images taken from a self-driving car dashboard are fairly consistent in their high level composition. For most of the well-paved road, lane lines are painted bright white and yellow against dark gray background (making it obvious for driver to make out the lanes). 
 
-![RGB selected images][RGBSelected](#RGB_select)
-![HSV selected images][HSVSelected]
-![HSL selected images][HSLSelected]
+To perform color selection, I experimented with setting range filters for white and yellow colors in RGB, HSV, and HLS color models. I looked up the RGB, HSV, and HSL colors using this [online color picker tool](http://colorizer.org/) and slightly modified the range to get crisper color segmentation. In the test images, with carefully chosen lower and upper bounds for each color models, image patches with white and yellow color cleanly segmented as shown with the HSV and HSL selected test images slightly more cleanly segmented than the RGB selected ones. To choose between HSV and HLS, I have found this [paper](http://revistas.ua.pt/index.php/revdeti/article/viewFile/2092/1964) which compares between HSV, HSL and other color models in real-time objection recognition and found HSV to be the best. So I choose to use HSV selection in my pipeline. Here's my implementation of Color Section
+
+```
+def hsl_color_select_white_yellow(image):
+    # HLS convention : [Hue, Lightness, Saturation]
+    # White: Any hue, max lightness, any saturation, 
+    # Bright Yellow: Yellow hue, 
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
+    white_mask = cv2.inRange(image, np.array([0, 220, 0]), np.array([255, 255, 255]))
+    yellow_mask = cv2.inRange(image, np.array([20, 0, 150]), np.array([45, 240, 240]))
+    color_mask = cv2.bitwise_or(white_mask, yellow_mask)
+    color_selected = cv2.bitwise_and(image, image, mask = color_mask)
+    return cv2.cvtColor(color_selected, cv2.COLOR_HLS2RGB)
+```
+
+##### best HSV color selected outputs
+![HSV selected images][HSVSelected](#HSV_select)
+
+#### Region of Interest (ROI) Selection
+The intuition behind region of interest selection is from the car dashboard the bottom half of the image patch are road areas where lane lines are painted. The region of interest selection filters in only the region where it is highly likely for lane lines to be so that the rest of the pipeline focuses on detecting lines from this region.
+
+To implement this, I experimented with the all four corners of the ROI and found that 
 
 ### 2. Identify potential shortcomings with your current pipeline
 
+#### Color selection
+1. Lighting : All the provided test images are taken from well illuminated scene for which the color segmentation can yield crisp cleanly segmented lane lines from the rest of the scene. In low lighing condition, color segmentation especially based on hue value (for yellow lane line) will be challenging as different color region in low saturation start to overlap. 
 
-One potential shortcoming would be what would happen when ... 
+2. Lane line coded in different color
 
-Another shortcoming could be ...
+3. Rapidly changing illumination (e.g. driving through tunnels)
+
+4. Differently colored lane line or lack of lane lines
 
 
 ### 3. Suggest possible improvements to your pipeline
-
+1. Use previous frames to guess where the next lane line might be
 A possible improvement would be to ...
 
 Another potential improvement could be to ...
