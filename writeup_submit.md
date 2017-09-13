@@ -16,6 +16,7 @@ The goals / steps of this project are the following:
 [//]: # (Image References)
 
 [image1]: ./examples/grayscale.jpg "Grayscale"
+[RGBSelected]: ./report_images/RGB_select.png "RGB selected images"
 
 ---
 
@@ -32,7 +33,8 @@ My pipeline consists of the following steps.
 
 I found that the key to obtaining clean images for lane detection are Color Selection and Region of Interest Selection. Images from a self-driving car dashboard camera angle are fairly consistent in their high level composition. The bottom half of the image patch are road areas where lane lines are. For most of the well-paved road, lane lines are painted bright white and yellow against dark gray background (making it obvious for driver to make out the lanes). 
 
-To perform color selection, we experimented with setting range filters for white and yellow colors in RGB, HSV, and HLS color models. 
+To perform color selection, we experimented with setting range filters for white and yellow colors in RGB, HSV, and HLS color models. In the test images, with carefully chosen lower and upper bounds for each color models, image patches with white and yellow color cleanly segmented.
+http://www.bogotobogo.com/python/OpenCV_Python/python_opencv3_Changing_ColorSpaces_RGB_HSV_HLS.php
 
 First, I converted the images to grayscale, then I .... 
 
@@ -40,8 +42,7 @@ In order to draw a single line on the left and right lanes, I modified the draw_
 
 If you'd like to include images to show how the pipeline works, here is how to include an image: 
 
-![alt text][image1]
-
+![RGB selected images][RGBSelected]
 
 ### 2. Identify potential shortcomings with your current pipeline
 
