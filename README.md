@@ -1,56 +1,203 @@
 # **Finding Lane Lines on the Road** 
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
 
-<img src="examples/laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
+## Table of Contents ##
+- [Pipeline Description](#pipeline-description)
+- [Experiments on Test Videos](#experiments-on-test-videos)
+- [Potential ShortComings](#potential-shortcomings)
+- [Suggestion for Improvements](#suggestion-for-improvements)
 
-Overview
 ---
 
-When we drive, we use our eyes to decide where to go.  The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle.  Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
+**Finding Lane Lines on the Road**
 
-In this project you will detect lane lines in images using Python and OpenCV.  OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images.  
-
-To complete the project, two files will be submitted: a file containing project code and a file containing a brief write up explaining your solution. We have included template files to be used both for the [code](https://github.com/udacity/CarND-LaneLines-P1/blob/master/P1.ipynb) and the [writeup](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md).The code file is called P1.ipynb and the writeup template is writeup_template.md 
-
-To meet specifications in the project, take a look at the requirements in the [project rubric](https://review.udacity.com/#!/rubrics/322/view)
+The goals / steps of this project are the following:
+* Make a pipeline that finds lane lines on the road
+* Reflect on your work in a written report
 
 
-Creating a Great Writeup
----
-For this project, a great writeup should provide a detailed response to the "Reflection" section of the [project rubric](https://review.udacity.com/#!/rubrics/322/view). There are three parts to the reflection:
+[//]: # (Image References)
 
-1. Describe the pipeline
+[image1]: ./examples/grayscale.jpg "Grayscale"
+[RGBSelected]: ./report_images/RGB_select.png "RGB selected images"
+[HSVSelected]: ./report_images/HSV_select.png "HSV selected images"
+[HSLSelected]: ./report_images/HLS_select.png "HSL selected images"
+[ROISelected]: ./report_images/ROI_select.png "ROI selected images"
+[EdgeMasked]: ./report_images/Canny_masked.png "Canny edge masked images"
+[WeightedMasked]: ./report_images/hough_line_masked.png "Hough line detected images"
+[ImprovedDrawLineMasked]: ./report_images/improved_draw_lines_masked.png "Hough line images after improved draw line"
 
-2. Identify any shortcomings
+[//]: # (Video References)
+[SolidWhiteVideo]: /test_videos_output/solidWhiteRight.mp4 "SolidWhiteRight test output videos"
+[SolidYellowVideo]: /test_videos_output/solidYellowLeft.mp4 "solidYellowLeft test output videos"
 
-3. Suggest possible improvements
-
-We encourage using images in your writeup to demonstrate how your pipeline works.  
-
-All that said, please be concise!  We're not looking for you to write a book here: just a brief description.
-
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup. Here is a link to a [writeup template file](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md). 
-
-
-The Project
 ---
 
-## If you have already installed the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) you should be good to go!   If not, you should install the starter kit to get started on this project. ##
+### Pipeline description ###
+#### High-level Summary ####
+My pipeline consists of the following steps:
+- [Color Selection](#color-selection)
+- [Region of Interest Selection](#region-of-interest-selection)
+- [Gray Scaling](#gray-scaling)
+- [Gaussian Smoothing](#gaussian-smoothing)
+- [Canny Edge Detection](#canny-edge-detection)
+- [Hough Tranform Line Detection](#hough-transform-line-detection)
 
-**Step 1:** Set up the [CarND Term1 Starter Kit](https://classroom.udacity.com/nanodegrees/nd013/parts/fbf77062-5703-404e-b60c-95b78b2f3f9e/modules/83ec35ee-1e02-48a5-bdb7-d244bd47c2dc/lessons/8c82408b-a217-4d09-b81d-1bda4c6380ef/concepts/4f1870e0-3849-43e4-b670-12e6f2d4b7a7) if you haven't already.
+I modify the `draw_lines` function to make the line detection more robust by grouping detected lines into left and right lane lines and perform line extrapolation within group. Here is more detailed description: 
+- [Improvement to the draw_lines function](#improvement-to-the-draw_lines-function)
 
-**Step 2:** Open the code in a Jupyter Notebook
+In my experiments, the key to obtaining clean images for lane detection are Color Selection and Region of Interest Selection. Gaussian Smoothing seem to contributes minimally to cleaner images for Edge detection and line detecion. 
 
-You will complete the project code in a Jupyter notebook.  If you are unfamiliar with Jupyter Notebooks, check out <A HREF="https://www.packtpub.com/books/content/basics-jupyter-notebook-and-python" target="_blank">Cyrille Rossant's Basics of Jupyter Notebook and Python</A> to get started.
+###### back to [Table of Contents](#table-of-contents)
 
-Jupyter is an Ipython notebook where you can run blocks of code and see results interactively.  All the code for this project is contained in a Jupyter notebook. To start Jupyter in your browser, use terminal to navigate to your project directory and then run the following command at the terminal prompt (be sure you've activated your Python 3 carnd-term1 environment as described in the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) installation instructions!):
+#### Color selection ####
+The intuition behind color selection is that images taken from a self-driving car dashboard are fairly consistent in their high level composition. For most of the well-paved road, lane lines are painted bright white and yellow against dark gray background (making it obvious for driver to make out the lanes). 
 
-`> jupyter notebook`
+To perform color selection, I experimented with setting range filters for white and yellow colors in RGB, HSV, and HLS color models. I looked up the RGB, HSV, and HSL colors using this [online color picker tool](http://colorizer.org/) and slightly modified the range to get crisper color segmentation. In the test images, with carefully chosen lower and upper bounds for each color models, image patches with white and yellow color cleanly segmented as shown with the HSV and HSL selected test images slightly more cleanly segmented than the RGB selected ones. To choose between HSV and HLS, I have found this [paper](http://revistas.ua.pt/index.php/revdeti/article/viewFile/2092/1964) which compares between HSV, HSL and other color models in real-time objection recognition and found HSV to be the best. So I choose to use HSV selection in my pipeline. Here's my implementation of Color Section. 
 
-A browser window will appear showing the contents of the current directory.  Click on the file called "P1.ipynb".  Another browser window will appear displaying the notebook.  Follow the instructions in the notebook to complete the project.  
+```python
+def hsv_color_select_white_yellow(image):
+    # HSV convention : [Hue, Saturation, Value]
+    # White: any hue, high saturation, any value
+    # Bright Yellow: Yellow hue (30 - 90)
+    #   - the yellow in the test images some time tints toward orange I change the lower bound to 10
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    white_mask = cv2.inRange(image, np.array([0, 0, 225]), np.array([255, 255, 255]))
+    yellow_mask = cv2.inRange(image, np.array([10, 100, 100]), np.array([90, 255, 255]))
+    color_mask = cv2.bitwise_or(white_mask, yellow_mask)
+    color_selected = cv2.bitwise_and(image, image, mask = color_mask)
+    return cv2.cvtColor(color_selected, cv2.COLOR_HSV2RGB)    
+```
+The test images after the HSV Color Segmentation are shown below: 
+##### best HSV color selected outputs #####
+![HSV selected images][HSVSelected]
+###### back to [Table of Contents](#table-of-contents)
 
-**Step 3:** Complete the project and submit both the Ipython notebook and the project writeup
+#### Region of Interest Selection ####
+The intuition behind region of interest selection arises from that the car dashboard the bottom half of the image patch are road areas where lane lines are painted. The region of interest selection filters in only the region where it is highly likely for lane lines to be so that the rest of the pipeline focuses on detecting lines from this region.
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+To implement this, I experimented with the all four corners of the ROI and found that the values that work best for the test images. Here's my implementation: 
+
+```python
+def compute_roi_vertices(image):    
+    image_height, image_width, _ = image.shape
+    top_left = [int(0.3*image_width), int(0.45*image_height)]
+    top_right = [int(0.7*image_width), int(0.45*image_height)]
+    bottom_left = [int(0.05*image_width), 0.95*image_height]
+    bottom_right = [int(0.95*image_width), 0.95*image_height]
+    
+    return np.array([[top_left, top_right, bottom_left, bottom_right]], dtype=np.int32)
+
+roi_selected_images = [
+    region_of_interest(image, compute_roi_vertices(image))
+    for image in best_color_selected_images
+]
+```
+The HSV selected images after the ROI Selection are shown below:
+##### ROI selected outputs #####
+![ROI selected images][ROISelected]
+###### back to [Table of Contents](#table-of-contents)
+
+#### Gray Scaling ####
+Gray scaling converts the image in color space into a single channel for downstream processing (Gaussian smoothing and edge detection). For this step, I used the provided `gray_scale` function (which is a thin wrapper code around `cv2.cvtColor( _ , cv2.COLOR_RGB2GRAY)`). 
+
+#### Gaussian Smoothing ####
+Gaussian smoothing suppresses (salt and pepper type of) noise from the images to prevent unwanted edges in the edge detection step in the pipeline. The key hyperparameter for Gaussian smoothing is `kernal_size` which specifies the size in pixels of the square slide window on which the 2D Gaussian kernel is convolved over the image. Optimal kernel size should be larger than the largest size of noise while smaller than the smallest key feature size from which we want to detect, so the optimal values depends on the quality of the input images. I experimented with `kernel_size` 3, 5, 7, 9, 11 and chose 5 to be the best kernel size for the pipeline based on the visual inspection of the test images. 
+
+#### Canny Edge Detection ####
+To perform edge detection, I use the provided `canny` function which is a thin wrapper around `cv2.Canny()`. The function requires two arguments: `lower_threshold` and `upper_threshold` which defines acceptance criteria for an edge. According to openCV [tutorial](http://docs.opencv.org/2.4/doc/tutorials/imgproc/imgtrans/canny_detector/canny_detector.html), for a given pixel, 
+* if its intensity gradient is above the `upper_threshold`, it is an edge. 
+* if an edge's intensity gradient is between the `upper_threshold` and the `lower_threshold` then it is an edge if and only if at least one of their neighboring pixel is an edge
+* otherwise it is NOT an edge.
+The input images in this project are 8-bit (0-255 pixel intensity) so (the absolute value of) the possible gradient range is 0-255. I experiment with adjusting the `upper_threshold` while keeping `lower_threshold=0` to get clean edge images. I found that any `upper_threshold` values between 100 - 200 yielded clean edge images so I choose to implement `upper_threshold=150` in my pipeline. In my pipeline, the `lower_threshold` does not seem to affect the output edge images that much so I choose to implement with `lower_threshold=50`.
+
+The images after the Canny edge detection algorithm is applied are shown below:
+##### Canny edge detected outputs #####
+![Canny edged masked images][EdgeMasked]
+###### back to [Table of Contents](#table-of-contents)
+
+#### Hough Tranform Line Detection ####
+The Hough Transform is the key step in successful line detection. I use the provided `hough_lines` which calls `cv2.HoughLinesP` and draw the detect lines over the original image using `draw_line()` There are five parameters that specifies the output of the `cv2.HoughLines`
+* rho - the distance resolution in pixels of the Hough grid
+* theta - the angular resolution in radians of the Hough grid
+* threshold - the minimum number of intersections in Hough grid cell requires for a point in Hough space to be an edge
+* min_line_len - the minimum number of pixels requires for an edge segment to be a line
+* max_line_gap - the maximum gap in pixels between connectable line segments to be connected as one line
+Varying these parameters requires a lot of experimentation. I found that the values provided in the lesson yielded pretty good results and deviations from those values degrade the quality of the detected lines. For the final implementation, I use the following set of values: 
+`rho = 1, theta = np.pi/180, threshold = 20, min_line_len = 10, max_line_gap = 100`. 
+
+The detected Hough lines overlaid on top of the original test images are shown below:
+##### Hough line detected outputs overlaid on the original test images #####
+![Weight masked images][WeightedMasked]
+###### back to [Table of Contents](#table-of-contents)
+
+#### Improvement to the draw_lines function ####
+I exploit two strategies to make the `draw_lines()` function more robust. The intuition behind the improvements are as follow. Given the the preprocessing yield high quality Hough lines that can be grouped into left vs. right lane lines segments, the outputs of the Hough transform can be grouped based on their slopes. With `matplotlib.image` y-axis convention (which is the reverse of `matplotlib.pyplot`), negative slope lines belong to the left lane and positive slope lines to the right lane. After the lane grouping, the lines can be extrapolated by using a linear equation with average slope and average position of the line segments within group. 
+
+The implementation of these strategies is shown here: 
+```python 
+def draw_lines_improved(img, lines, 
+                        color=[255, 0, 0], # default to red line
+                        thickness=3
+                       ):
+    """
+    Improve draw_lines by 
+    * Lane grouping: separating line segments as part of the left line vs. the right line.  
+    * Extrapolation: averaging the position of each of the lines and extrapolate to the top and bottom of the lane.    
+    """
+    # Create a pandas data frame of line for easy aggregation
+    # lines are defined as a list of starting point and end point coordinates : x1, y1, x2, y2
+    lines_df = pd.DataFrame(list(chain(*lines)), columns = ['x1', 'y1', 'x2', 'y2'])
+    # Compute line segment slope and determine if line belongs to the left or right lanes
+    lines_df['slope'] = lines_df.apply(lambda row: (row['y2'] - row['y1'])/(row['x2'] - row['x1']), axis=1)
+    # Negative slope segments belong to the left lane group (image y increasing from top to bottom)
+    lines_df['lane'] = lines_df['slope'].apply(lambda x: 'left' if x < 0 else 'right')
+    
+    image_height, image_width, _ = image.shape
+    # Heuristics for top and bottom pixels
+    y1_output = int(0.575*image_height)
+    y2_output = int(0.975*image_height)
+    
+    # group by lane type: 'left' vs. 'right'
+    # groupby object are tuples of (group_name, rows)
+    for gr in lines_df.groupby('lane'):
+        avg_x1 = gr[1]['x1'].agg(np.nanmean).values[0]
+        avg_y1 = gr[1]['y1'].agg(np.nanmean).values[0]
+        avg_slope = gr[1]['slope'].agg(np.nanmean).values[0]
+        if avg_slope != 0:
+            x1 = int(avg_x1 + (y1_output - avg_y1)/avg_slope)
+            x2 = int(avg_x1 + (y2_output - avg_y1)/avg_slope)
+            cv2.line(img, (x1, y1_output), (x2, y2_output), color, thickness)
+```
+The detected Hough lines overlaid on top of the original test images are shown below:
+##### Hough line detected after the modification to the `draw_lines()` function #####
+![Improved Draw Lines images][ImprovedDrawLineMasked]
+###### back to [Table of Contents](#table-of-contents)
+
+### Experiments on Test Videos ###
+The implemented pipeline perform relatively well on the two test videos provided after the improvements on the `draw_lines()` function. The results can be viewed here: 
+![Solid White Test Video Output][SolidWhiteVideo] and ![Solid Yellow Test Video Output][SolidYellowVideo]
+
+### Potential ShortComings ###
+While the pipeline seems to perform respectably well on the test videos, there are many scenario in which the pipeline could fail.  
+###### 1. Low Luminance Scene : 
+All the provided test images are taken from well illuminated scene for which the color segmentation can yield crisp cleanly segmented lane lines from the rest of the scene. In low lighing condition, color segmentation especially based on hue value (for yellow lane line) will be challenging as different color region in low saturation start to overlap. 
+
+###### 2. Rapidly changing illumination : (e.g. driving through tunnels, coming in and out of a garage)
+When there's a rapid changing in illumination from scene to scene and the camera aperture and shuttle speed does not adjust accordingly, the resulting images can be under/over illuminated for a brief moments. Color segmentation in those frames can be challenging and could leads to totally failure in lane detection since the pipeline heavily relies on the color segmentation. 
+
+###### 3. Change of ROI when driving up hill/down hill
+When a car is driving up hill / down the region of interest will likely move downward/upward respectively. Since the relative position of the ROI are hard-coded in the pipeline, the ROI might be off in those frames.
+
+###### 4. Turning : 
+When a car is turing the lane line angles within those image frames can change toward zero and lane line grouping based on slope sign might not accurately grouping the line segments. The pipeline could output lane lines are completely off. 
+
+###### 5. Occlusion : 
+On a crowded driveway e.g. during a traffic jams, lane lines can be partially or completed occluded by other objects / vehicles on the roads. The pipeline could fail to detect any lane lines in this case. 
+
+###### back to [Table of Contents](#table-of-contents)
+
+### Suggestion for Improvements ###
+Use information from the previous frame: Use detected lane lines in previous frames to define region of interest and guide/weigh the line segments in the current frame. Assuming that the lane lines are slowly and steadily changing frame-by-frame, we can compute the distance between the average positions and average slope of the line segments in the current frame to those of the detected line in the previous frame. This distance can be used to weigh the line segments when computing line averaging in the `draw_lines()` function.
+
+###### back to [Table of Contents](#table-of-contents)
 
